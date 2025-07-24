@@ -1,23 +1,29 @@
-import { useState } from "react";
-import { Dimensions, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import { ActionButton } from "../component/actionButton";
+import { FokusButton } from "../component/fokusButton";
+import { IconPause, IconPlay } from "../component/icons";
+import { Timer } from "../component/timer";
+
+
 const { width } = Dimensions.get('window');
 const pomodoro = [
   {
     id: 'pomodo',
-    time: 25,
-    img: require('./foco.png'),
+    initialValue: 25 * 60,
+    img: require('../assets/images/foco.png'),
     text: 'Foco'
   },
   {
     id: 'short',
-    time: 5,
-    img: require('./short.png'),
+    initialValue: 5 * 60,
+    img: require('../assets/images/short.png'),
     text: 'Pausa curta'
   },
   {
     id: 'long',
-    time: 15,
-    img: require('./long.png'),
+    initialValue: 15 * 60,
+    img: require('../assets/images/long.png'),
     text: 'Pausa longa'
   },
 ]
@@ -25,30 +31,65 @@ const pomodoro = [
 export default function Index() {
 
   const [timerType, setTimerTipe] = useState(pomodoro[0])
+  const [seconds, setSeconds] = useState(pomodoro[0].initialValue)
+  const [timerRunning, setTimerRunning] = useState(null)
+
+  const timerRef = useRef(null)
+
+  const clear = () => {
+    if (timerRef.current != null) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+      setTimerRunning(false)
+    }
+  }
+
+  const toggleTimerType = (newTimerType) => {
+    setTimerTipe(newTimerType)
+    setSeconds(newTimerType.initialValue)
+    clear()
+  }
+
+  const toggleTimer = () => {
+    if (timerRef.current) {
+      clear()
+      return
+    }
+
+    setTimerRunning(true)
+    const id = setInterval(() => {
+      setSeconds(oldState => {
+        if (oldState === 0) {
+          clear()
+          return timerType.initialValue
+        }
+        return oldState - 1
+      })
+    }, 1000);
+
+    timerRef.current = id
+  }
 
   return (
     <View style={styles.container}>
       <Image style={styles.image} source={timerType.img} />
       <View style={styles.action}>
         <View style={styles.context}>
-          { pomodoro.map(p => (
-            <Pressable 
-              key={p.id} 
-              style={ timerType.id === p.id ? styles.contextButtonActive : null}
-              onPress={() => setTimerTipe(p)}
-              >
-              <Text style={styles.contextButtonText}>
-                {p.text}
-              </Text>
-            </Pressable>
+          {pomodoro.map(p => (
+            <ActionButton
+              key={p.id}
+              action={timerType.id === p.id}
+              onPress={() => toggleTimerType(p)}
+              text={p.text}
+            />
           ))}
         </View>
-        <Text style={styles.timer}>
-          { new Date(timerType.time * 1000).toLocaleTimeString('pt-BR', {minute: '2-digit', second: '2-digit'}) }
-        </Text>
-        <Pressable style={styles.button}>
-          <Text style={styles.textButton}>Começar</Text>
-        </Pressable>
+        <Timer totalSeconds={seconds} />
+        <FokusButton
+          tile={timerRunning ? 'Pausar' : 'Começar'}
+          icon={timerRunning ? <IconPause/> : <IconPlay/>}
+          onPress={toggleTimer}
+        />
       </View>
       <View style={styles.footer}>
         <Text style={styles.footerText}>
@@ -83,32 +124,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center'
-  },
-  contextButtonActive: {
-    backgroundColor: "#144480",
-    borderRadius: 8,
-  },
-  contextButtonText: {
-    fontSize: 12.5,
-    color: '#fff',
-    padding: 8
-  },
-  timer: {
-    fontSize: 54,
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  button: {
-    backgroundColor: "#B872FF",
-    padding: 8,
-    borderRadius: 32,
-    alignItems: "center",
-  },
-  textButton: {
-    textAlign: "center",
-    color: "#021123",
-    fontSize: 18
   },
   footer: {
     width: "80%",
