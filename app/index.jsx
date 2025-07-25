@@ -134,8 +134,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5
   },
   image: {
-    width: width * 0.7, // 60% da largura da tela
+    width: width * 0.7,
     height: width * 0.7,
-    // resizeMode: 'contain'
   }
 });
