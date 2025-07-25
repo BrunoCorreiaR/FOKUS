@@ -136,6 +136,6 @@ const styles = StyleSheet.create({
   image: {
     width: width * 0.7, // 60% da largura da tela
     height: width * 0.7,
-    resizeMode: 'contain'
+    // resizeMode: 'contain'
   }
 });
